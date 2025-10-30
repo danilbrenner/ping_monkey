@@ -1,0 +1,75 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.so
+*.dylib
+*.pyd
+
+# Virtual environments
+env/
+venv/
+ENV/
+.venv/
+.venv
+
+# Pip cache / wheel metadata
+pip-wheel-metadata/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# Installer logs
+*.log
+
+# Unit test / coverage
+.coverage
+.coverage.*
+htmlcov/
+.coverage.xml
+.nox/
+.tox/
+.pytest_cache/
+.cache/
+.mypy_cache/
+
+# SQLite and other local DBs
+*.db
+*.sqlite3
+
+# IDEs and editors
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Secrets / env files
+.env
+.env.* 
+
+# Static files / generated
+node_modules/
+staticfiles/
+media/
+
+# Maven/Gradle (if present)
+target/
+
+# Local python-specific files
+*.egg
+*.egg-info
+.eggs
+
+# JetBrains project/workspace files
+*.iml

@@ -1,0 +1,14 @@
+
+probes:
+  - name: "One"
+    schedule: "*/2 * * * *"
+    url: "https://example.com/health"
+    checks:
+      - type: "status_code"
+        expected_status_code: 200
+      - type: "response_time"
+        threshold_ms: 200
+      - type: "hash"
+        expected_hash: "abc123def456ghi789jkl012mno345pqrs"
+      - type: "ssl_validity"
+        min_days_valid: 10

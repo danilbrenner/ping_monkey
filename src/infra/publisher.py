@@ -1,35 +1,44 @@
 import json
-from azure.storage.queue.aio import QueueClient
+from dataclasses import dataclass
+from typing import Protocol
+
+from confluent_kafka import Producer
+
+from src.common.logging import Logger
 from src.domain import CheckOutcome
-from src.common.logging import get_logger
 
 
-async def publish(conn_str: str, queue_name: str, probe_name: str, outcome: CheckOutcome) -> None:
-    log = get_logger()
+class Publisher(Protocol):
+    async def publish(self, probe_name: str, outcome: CheckOutcome) -> None: ...
 
-    if not queue_name:
-        log.warning("Azure queue name not configured; skipping publish")
-        return
 
-    if not conn_str:
-        log.warning("Azure storage connection string not provided; skipping publish")
-        return
+@dataclass(frozen=True, slots=True)
+class KafkaPublisherConfig:
+    kafka_cfg: dict[str, str]
+    topic: str
 
-    payload = json.dumps(
-        {
+
+class KafkaPublisher:
+    def __init__(self, logger: Logger, cfg: KafkaPublisherConfig) -> None:
+        self._logger = logger
+        self._producer = Producer(cfg.kafka_cfg)
+        self._topic = cfg.topic
+
+    async def publish(self, probe_name: str, outcome: CheckOutcome) -> None:
+        payload = json.dumps({
             "probe_name": probe_name,
             "check_type": outcome.check_type,
             "timestamp": outcome.timestamp,
             "success": outcome.success,
             "details": outcome.details,
-        }
-    )
+        })
 
-    try:
-        client = QueueClient.from_connection_string(conn_str, queue_name)
-
-        async with client:
-            await client.send_message(payload)
-            log.info("Published check outcome", queue=queue_name)
-    except Exception as e:
-        log.error("Failed to publish check outcome", error=e)
+        try:
+            self._producer.produce(self._topic, payload.encode('utf-8'))
+            self._producer.flush()
+            self._logger.info("Published probe outcome to Kafka",
+                              probe=probe_name,
+                              topic=self._topic,
+                              check_type=outcome.check_type)
+        except Exception as e:
+            self._logger.error("Failed to publish probe outcome to Kafka", error=str(e))

@@ -1,6 +1,6 @@
 import pytest
 
-from src.infra.config_loader import _parse_check, _parse_probe
+from src.infra.config_loader import _parse_check, _parse_probe, _parse_config
 
 from src.domain import (
     StatusCodeCheck,
@@ -185,3 +185,58 @@ def test_parse_probe_missing_schedule():
             assert any("Probe schedule is required" in e for e in errs)
         case Ok(_):
             pytest.fail("Expected Failure when probe schedule is missing")
+
+
+def test_parse_config_with_sink_success():
+    config = {
+        "sink": {
+            "kafka": {
+                "cfg": {"bootstrap.servers": "localhost:9092", "security.protocol": "PLAINTEXT"},
+                "topic": "ping-results",
+            }
+        },
+        "probes": [
+            {
+                "name": "example",
+                "url": "https://example.com",
+                "schedule": "@daily",
+                "checks": [
+                    {"type": "status_code", "expected_status_code": 200},
+                ],
+            }
+        ],
+    }
+
+    res = _parse_config(config)
+    match res:
+        case Ok((kafka_cfg, topic, probes)):
+            assert kafka_cfg == {"bootstrap.servers": "localhost:9092", "security.protocol": "PLAINTEXT"}
+            assert topic == "ping-results"
+            assert probes == [Probe(name="example", url="https://example.com", schedule="@daily",
+                                    checks=[StatusCodeCheck(expected_status_code=200)])]
+        case Err(e):
+            pytest.fail(f"Expected Success but got Failure: {e}")
+
+
+def test_parse_config_without_sink_defaults():
+    config = {
+        # no sink provided
+        "probes": [
+            {
+                "name": "example2",
+                "url": "https://example.org",
+                "schedule": "@hourly",
+                "checks": [{"type": "response_time", "threshold_ms": 250}],
+            }
+        ],
+    }
+
+    res = _parse_config(config)
+    match res:
+        case Ok((kafka_cfg, topic, probes)):
+            assert kafka_cfg == {}
+            assert topic == ""
+            assert probes == [Probe(name="example2", url="https://example.org", schedule="@hourly",
+                                    checks=[ResponseTimeCheck(threshold_ms=250)])]
+        case Err(e):
+            pytest.fail(f"Expected Success but got Failure: {e}")

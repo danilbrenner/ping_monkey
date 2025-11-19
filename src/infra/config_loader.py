@@ -87,7 +87,11 @@ def _parse_probe(p: Any) -> Result[Probe, list[str]]:
     ))
 
 
-def _parse_config(config: dict[str, Any]) -> Result[list[Probe], list[str]]:
+def _parse_config(config: dict[str, Any]) -> Result[tuple[dict[str, str], str, list[Probe]], list[str]]:
+    sink = config.get("sink", {}).get("kafka", {})
+    kafka_cfg = sink.get("cfg", {})
+    topic = sink.get("topic", "")
+    
     probes_raw = config.get("probes", [])
 
     probes: list[Probe] = []
@@ -102,7 +106,7 @@ def _parse_config(config: dict[str, Any]) -> Result[list[Probe], list[str]]:
             case _ as unreachable:
                 assert_never(unreachable)
 
-    return Ok(probes) if not errors else Err(errors)
+    return Ok((kafka_cfg, topic, probes)) if not errors else Err(errors)
 
 
 def _read_config_file(file_name: str) -> Result[dict[str, Any], list[str]]:
@@ -122,9 +126,10 @@ def _read_config_file(file_name: str) -> Result[dict[str, Any], list[str]]:
     else:
         return Err(["Failed to load yaml config"])
 
-def get_config(file_name: str) -> Result[list[Probe], list[str]]:
+
+def get_config(file_name: str) -> Result[tuple[dict[str, str], str, list[Probe]], list[str]]:
     return bind_result(
-        _parse_config, 
+        _parse_config,
         _read_config_file(file_name)
     )
 

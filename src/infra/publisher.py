@@ -5,11 +5,11 @@ from typing import Protocol
 from confluent_kafka import Producer
 
 from src.common.logging import Logger
-from src.domain import CheckOutcome
+from src.domain import HttpResult, CertInfo
 
 
 class Publisher(Protocol):
-    async def publish(self, probe_name: str, outcome: CheckOutcome) -> None: ...
+    async def publish(self, probe_name: str, result: HttpResult, cert_info: CertInfo | None) -> None: ...
 
 
 @dataclass(frozen=True, slots=True)
@@ -24,13 +24,19 @@ class KafkaPublisher:
         self._producer = Producer(cfg.kafka_cfg)
         self._topic = cfg.topic
 
-    async def publish(self, probe_name: str, outcome: CheckOutcome) -> None:
+    async def publish(self, probe_name: str, result: HttpResult, cert_info: CertInfo | None) -> None:
         payload = json.dumps({
-            "probe_name": probe_name,
-            "check_type": outcome.check_type,
-            "timestamp": outcome.timestamp,
-            "success": outcome.success,
-            "details": outcome.details,
+            "probeName": probe_name,
+            "httpResult": {
+                "statusCode": result.status_code,
+                "elapsedMs": result.elapsed_ms,
+            },
+            "certInfo": {
+                "subjectCN": cert_info.subject_cn,
+                "issuerCN": cert_info.issuer_cn,
+                "notBefore": cert_info.not_before.isoformat(),
+                "notAfter": cert_info.not_after.isoformat(),
+            } if cert_info else None
         })
 
         try:
@@ -38,7 +44,6 @@ class KafkaPublisher:
             self._producer.flush()
             self._logger.info("Published probe outcome to Kafka",
                               probe=probe_name,
-                              topic=self._topic,
-                              check_type=outcome.check_type)
+                              topic=self._topic)
         except Exception as e:
             self._logger.error("Failed to publish probe outcome to Kafka", error=str(e))

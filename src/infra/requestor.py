@@ -92,6 +92,5 @@ def _response_to_http_result(
 ) -> HttpResult:
     return HttpResult(
         status_code=response.status_code,
-        body=response.content,
         elapsed_ms=int(response.elapsed.microseconds / 1000),
     )

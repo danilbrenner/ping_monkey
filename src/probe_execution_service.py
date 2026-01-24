@@ -1,6 +1,6 @@
 from src.common.logging import Logger
 from src.common.result import Err
-from src.domain import Probe, SslValidityCheck, calc_outcome
+from src.domain import Probe
 from src.infra.publisher import Publisher
 from src.infra.requestor import Requestor
 
@@ -24,8 +24,7 @@ class ProbeExecutionService:
 
         self._logger.info("Fetched response for probe {probe}", probe=probe.name)
 
-        cert_info = self._requestor.get_cert_info(probe.url) if any(
-            [isinstance(c, SslValidityCheck) for c in probe.checks]) else None
+        cert_info = self._requestor.get_cert_info(probe.url) if probe.checkCert else None
 
         if isinstance(cert_info, Err):
             self._logger.error(
@@ -37,16 +36,6 @@ class ProbeExecutionService:
 
         self._logger.info("Fetched cert info for probe {probe}", probe=probe.name)
 
-        outcomes = [
-            calc_outcome(
-                response.value,
-                None if cert_info is None else cert_info.value,
-                check)
-            for check in probe.checks]
-
-        self._logger.info("Calculated {cnt} outcomes for probe {probe}", cnt=len(outcomes), probe=probe.name)
-
-        for outcome in outcomes:
-            await self._publisher.publish(probe.name, outcome)
+        await self._publisher.publish(probe.name, response.value, cert_info.value if cert_info else None)
 
         self._logger.info("Published outcomes for probe {probe}", probe=probe.name)

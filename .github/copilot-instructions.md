@@ -43,6 +43,19 @@ tests/
   test_probe_execution_service.py
 ```
 
+## Branching Convention
+
+| Prefix | Purpose |
+|--------|---------|
+| `feat/` | New feature |
+| `fix/` | Bug fix |
+| `refactor/` | Code refactoring without behaviour change |
+| `chore/` | Non-code changes (deps, config, tooling, CI) |
+| `docs/` | Documentation-only changes |
+| `test/` | Adding or updating tests |
+
+Examples: `feat/ssl-retry`, `fix/kafka-timeout`, `chore/update-deps`
+
 ## Testing
 - Use **pytest**. Place tests under `tests/`.
 - Mock external dependencies (`Publisher`, `Requestor`) with `unittest.mock.AsyncMock` / `Mock`.

@@ -18,24 +18,28 @@ Examples: `feat/ssl-retry`, `fix/kafka-timeout`, `chore/update-deps`
 ## Development Setup
 
 ```shell
-# Create a fresh virtual environment
-python -m venv venv
-source venv/bin/activate
-
-# Install only what you need
-pip install -r requirements-dev.txt
-
-# This will install the 4 core packages + their transitive deps + dev tools
+make install   # create .venv and install all dependencies
 ```
 
-### Manual Docker Commands
+All available targets:
 
-Build: 
 ```shell
-docker build -t ping_monkey:latest .
+make           # show help
+make init      # create virtual environment at .venv/
+make install   # install runtime + dev dependencies
+make test      # run pytest
+make tc        # run mypy (alias: type-check)
+make docker-build  # build Docker image
 ```
 
-Dev:
+### Docker
+
+Build the image:
+```shell
+make docker-build
+```
+
+Start the local Kafka stack:
 ```shell
 docker compose up -d
 ```

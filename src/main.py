@@ -9,7 +9,7 @@ from src.common.logging import Logger, init_logging, get_logger
 from src.infra.config_loader import get_config
 from src.domain import Probe
 from src.common.result import Err, Ok
-from src.infra.publisher import KafkaPublisher, KafkaPublisherConfig
+from src.infra.kafka_publisher import KafkaPublisher, KafkaPublisherConfig
 from src.infra.requestor import HttpRequestor
 from src.probe_execution_service import ProbeExecutionService
 

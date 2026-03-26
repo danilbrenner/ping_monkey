@@ -3,7 +3,7 @@ from typing import cast
 from unittest.mock import AsyncMock, Mock
 
 from src.common.logging import Logger
-from src.infra.publisher import Publisher
+from src.infra.publisher_protocol import Publisher
 from src.infra.requestor import Requestor
 from src.probe_execution_service import ProbeExecutionService
 from src.domain import (

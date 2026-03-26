@@ -1,7 +1,7 @@
 from src.common.logging import Logger
 from src.common.result import Err
 from src.domain import Probe
-from src.infra.publisher import Publisher
+from src.infra.publisher_protocol import Publisher
 from src.infra.requestor import Requestor
 
 

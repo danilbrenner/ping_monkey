@@ -1,15 +1,10 @@
 import json
 from dataclasses import dataclass
-from typing import Protocol
 
 from confluent_kafka import Producer
 
 from src.common.logging import Logger
 from src.domain import HttpResult, CertInfo
-
-
-class Publisher(Protocol):
-    async def publish(self, probe_name: str, result: HttpResult, cert_info: CertInfo | None) -> None: ...
 
 
 @dataclass(frozen=True, slots=True)
